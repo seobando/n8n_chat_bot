@@ -1,0 +1,408 @@
+{
+  "name": "Facebook RAG App",
+  "nodes": [
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body.entry[0].messaging[0].sender.id }}",
+        "contextWindowLength": 12
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        180,
+        -240
+      ],
+      "id": "0c138c26-7f57-4eef-bc49-02b4e46f3635",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "gemini-scraper",
+          "mode": "list",
+          "cachedResultName": "gemini-scraper"
+        },
+        "options": {
+          "pineconeNamespace": "n8n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        200,
+        -37.5
+      ],
+      "id": "e601a3c9-e93e-4163-832d-25b08af40110",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "r7qAPleXy11TOW1W",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash-002",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        60,
+        -240
+      ],
+      "id": "ddb4ac09-8944-4f73-8c0a-44d87e872392",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "nyncRIIQUuUWy0wH",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        280,
+        160
+      ],
+      "id": "904783a1-952b-42d2-aec5-2d7caedc9448",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "nyncRIIQUuUWy0wH",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash-002",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -40
+      ],
+      "id": "97152a74-2cd7-4890-90d9-e58955f5074a",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "nyncRIIQUuUWy0wH",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.entry[0].messaging[0].message.text }}",
+        "options": {
+          "systemMessage": "=**Rol**\nEres un asesor de servicio al cliente de una empresa de motos que se llama AKTMotos.\n\n**Tarea**\nDebes ayudar al cliente a resolver sus dudas y hacerle recomendaciones. Hablas con franqueza pero siendo amable. Frases cortas y contundentes. Totalmente honesto\n\n**Detalles**\nTienes accesos a varias herramientas las cuales usas correctamente.\n\n**Herramientas**\n- **akt_motos_q**  \n  Utilice esta herramienta para responder preguntas con conocimiento sobre las motos que ofrece la empresa."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        100,
+        -460
+      ],
+      "id": "70edc4ff-e796-4f6c-b3fc-561868182952",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "name": "akt_motos_q",
+        "description": "Provee información sobre motos y promociones de la empresa AKT",
+        "topK": "=4"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        300,
+        -237.5
+      ],
+      "id": "67884427-fd2f-4d75-9a5a-f62280d33c71",
+      "name": "akt_motos_q1"
+    },
+    {
+      "parameters": {
+        "multipleMethods": true,
+        "path": "73d1f059-5d4e-4bc1-a51e-152e25f59729",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        -710
+      ],
+      "id": "07c3cee6-41e0-49d0-bcec-6d56e7b4fa38",
+      "name": "Webhook",
+      "webhookId": "73d1f059-5d4e-4bc1-a51e-152e25f59729"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c7e620fc-d941-4503-b7d7-8de5fec9fc67",
+              "leftValue": "={{ $json.query[\"hub.mode\"] }}",
+              "rightValue": "subscribe",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "1dc773e9-0986-4d6a-8e2f-1a86ca313315",
+              "leftValue": "={{ $json.query[\"hub.verify_token\"] }}",
+              "rightValue": "fb-messenger-yf-secret",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        260,
+        -960
+      ],
+      "id": "82b6874b-9f99-44cf-aae4-9a9762adae98",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query[\"hub.challenge\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        680,
+        -1060
+      ],
+      "id": "d403770f-c101-4872-acd0-121f5454fdd1",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        680,
+        -810
+      ],
+      "id": "52976443-675c-4853-99f1-f9729f4bd4ff",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v22.0/{{ $('Webhook').item.json.body.entry[0].messaging[0].recipient.id }}/messages",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAaHxkHBwV0BO2inwIs7mZBwSdieS8ZAuWvbMSescQ8Gx3aSDEC9ZAfs2EDklNjGwN30v8qqFouD6XBZBF5Xf9ZBUNsmO3LKXfO3qg2MvtMirxZBg1P4wczM2nC86mcak3D2SZClEkTuH4uZBAjxRlnPmV87g5JTdarCJbDR2gGxf09d1zGcTnZB3jXemUiZAz1HIeEFQC9JsZD"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $('Webhook').item.json.body.entry[0].messaging[0].sender.id }}\"\n  },\n  \"messaging_type\": \"RESPONSE\",\n  \"message\": {\n    \"text\": {{ JSON.stringify($('AI Agent1').item.json.output) }}\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        -460
+      ],
+      "id": "87c61a9c-7331-4804-a044-7ae4b5aefc6c",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        480,
+        -460
+      ],
+      "id": "a114c7db-730c-4c36-be17-5af153ebff71",
+      "name": "Respond to Webhook3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "akt_motos_q1",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "akt_motos_q1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "akt_motos_q1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4d9f5b7d-9855-47f1-abbf-6db797068b0a",
+  "meta": {
+    "instanceId": "841d6ac312625e899d3667ff1ab904883d0fa3298c98d163673668f5cc90c97a"
+  },
+  "id": "CbX5pTdjMd7UOnwm",
+  "tags": []
+}
