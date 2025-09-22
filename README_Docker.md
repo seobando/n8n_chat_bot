@@ -71,3 +71,4 @@ If you encounter issues:
 2. View container logs: `docker-compose logs n8n`
 3. Ensure Docker and Docker Compose are properly installed
 4. Make sure your `.env` file exists and has the correct format
+

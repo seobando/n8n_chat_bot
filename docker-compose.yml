@@ -42,3 +42,4 @@ volumes:
 networks:
   n8n_network:
     driver: bridge
+
